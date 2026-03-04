@@ -21,17 +21,20 @@ CREATE TABLE IF NOT EXISTS public.messages (
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
--- 4. RLS Policies for Profiles (Anyone authenticated can see other profiles)
+-- 4. RLS Policies for Profiles
+DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON public.profiles;
 CREATE POLICY "Public profiles are viewable by everyone" 
 ON public.profiles FOR SELECT USING (true);
 
 -- 5. RLS Policies for Messages (Private 1-on-1)
+DROP POLICY IF EXISTS "Users can see messages where they are sender or recipient" ON public.messages;
 CREATE POLICY "Users can see messages where they are sender or recipient"
 ON public.messages
 FOR SELECT
 TO authenticated
 USING (auth.uid() = user_id OR auth.uid() = recipient_id);
 
+DROP POLICY IF EXISTS "Users can insert their own messages" ON public.messages;
 CREATE POLICY "Users can insert their own messages"
 ON public.messages
 FOR INSERT
@@ -48,9 +51,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE OR REPLACE TRIGGER on_auth_user_created
+-- Drop trigger first to avoid errors
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- 7. Enable Realtime (Ignore errors if already enabled)
+-- Note: Realtime might already be enabled for the table.
+-- If these fail in some environments, it's usually okay.
+ALTER PUBLICATION supabase_realtime ADD TABLE messages;
+ALTER PUBLICATION supabase_realtime ADD TABLE profiles;
 
 -- 8. Sync existing users to profiles table (Important for current users)
 INSERT INTO public.profiles (id, email)

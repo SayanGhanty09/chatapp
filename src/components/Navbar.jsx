@@ -1,9 +1,9 @@
 import React from 'react';
 import { useAuth } from '../components/AuthContext';
-import { MoreVertical, Search, Phone, Video } from 'lucide-react';
+import { MoreVertical, Search, Phone, Video, ArrowLeft } from 'lucide-react';
 
-const Navbar = () => {
-    const { user, signOut } = useAuth();
+const Navbar = ({ selectedUser }) => {
+    const { signOut } = useAuth();
 
     return (
         <nav className="nav-container">
@@ -15,7 +15,7 @@ const Navbar = () => {
                         </svg>
                     </div>
                     <div className="user-info">
-                        <span className="user-name">{user?.email?.split('@')[0]}</span>
+                        <span className="user-name">{selectedUser?.email?.split('@')[0]}</span>
                         <span className="user-status">online</span>
                     </div>
                 </div>
