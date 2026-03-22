@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../components/AuthContext';
-import { MessageSquare, Loader2 } from 'lucide-react';
+import { MessageSquare, Loader2 } from 'lucide-react':
 
 const Auth = () => {
     const [isLogin, setIsLogin] = useState(true);
